@@ -1,299 +1,236 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TGC PAID SCRIMS</title>
+<title>TGC SCRIMS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      color: white;
-      background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)),
-                  url('bg.jpg') no-repeat center center fixed;
-      background-size: cover;
-    }
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#000;
+  color:white;
+  text-align:center;
+}
+h1{color:#00bfff;}
 
-    #app {
-      max-width: 420px;
-      margin: 40px auto;
-      padding: 25px;
-      border-radius: 15px;
-      text-align: center;
-      background: rgba(0,0,0,0.75);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 0 25px #00bfff;
-    }
+.box{
+  background:#111;
+  margin:15px;
+  padding:20px;
+  border-radius:12px;
+  border:2px solid #00bfff;
+}
 
-    input, button {
-      width: 95%;
-      padding: 14px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
-    }
+button{
+  padding:12px;
+  margin:6px;
+  background:#00bfff;
+  border:none;
+  border-radius:8px;
+}
 
-    button {
-      background: #00bfff;
-      color: white;
-      cursor: pointer;
-    }
-  </style>
+input{
+  padding:12px;
+  margin:10px;
+  width:80%;
+  border-radius:8px;
+}
+</style>
 </head>
 
 <body>
+
+<h1>🔥 TGC SCRIMS 🔥</h1>
 <div id="app"></div>
 
 <script>
-const app = document.getElementById("app");
-const ADMIN_PASS = "TEAMEGOISTIC";
 
-/* ---------- STORAGE ---------- */
-const getDB=()=>JSON.parse(localStorage.getItem("users"))||{};
-const saveDB=(d)=>localStorage.setItem("users",JSON.stringify(d));
-
-const getProofs=()=>JSON.parse(localStorage.getItem("proofs"))||[];
-const saveProofs=(p)=>localStorage.setItem("proofs",JSON.stringify(p));
-
-const getRooms=()=>JSON.parse(localStorage.getItem("rooms"))||[];
-const saveRooms=(r)=>localStorage.setItem("rooms",JSON.stringify(r));
-
-const getNotices=()=>JSON.parse(localStorage.getItem("notices"))||[];
-const saveNotices=(n)=>localStorage.setItem("notices",JSON.stringify(n));
-
-const getHistory=()=>JSON.parse(localStorage.getItem("history"))||[];
-const saveHistory=(h)=>localStorage.setItem("history",JSON.stringify(h));
-
-const setSession=(u)=>localStorage.setItem("session",u);
-const getSession=()=>localStorage.getItem("session");
-const logout=()=>{localStorage.removeItem("session");loginView();};
-
-/* ---------- LOGIN ---------- */
-function loginView(){
-app.innerHTML=`
-<h2>Login</h2>
-<input id="user" placeholder="Username">
-<input id="pass" type="password">
-<button onclick="login()">Login</button>
-<button onclick="registerView()">Register</button>
-<button onclick="adminLogin()">Admin</button>`;
+// ===== LOGIN =====
+function loginPage(){
+  app.innerHTML =
+  '<div class="box">'+
+  '<h2>PLAYER LOGIN</h2>'+
+  '<input id="user" placeholder="Username"><br>'+
+  '<button onclick="login()">ENTER</button><br>'+
+  '<button onclick="adminLogin()">👑 ADMIN</button>'+
+  '</div>';
 }
 
 function login(){
-let db=getDB();
-if(db[user.value]&&db[user.value].pass===pass.value){
-setSession(user.value);
-homeView();
-}else alert("Wrong");
+  localStorage.setItem("user",user.value);
+  if(!localStorage.getItem("wallet")) localStorage.setItem("wallet",0);
+  home();
 }
 
-/* ---------- REGISTER ---------- */
-function registerView(){
-app.innerHTML=`
-<h2>Register</h2>
-<input id="newUser">
-<input id="newPass" type="password">
-<button onclick="createAccount()">Create</button>
-<button onclick="loginView()">Back</button>`;
-}
-
-function createAccount(){
-let db=getDB();
-if(db[newUser.value])return alert("Exists");
-db[newUser.value]={pass:newPass.value,wallet:0};
-saveDB(db);
-loginView();
-}
-
-/* ---------- HOME ---------- */
-function homeView(){
-let u=getSession(); if(!u)return loginView();
-let db=getDB();
-
-app.innerHTML=`
-<h2>Dashboard</h2>
-<div id="notice" style="color:yellow"></div>
-
-<p>Wallet: ₹${db[u].wallet}</p>
-
-<button onclick="pay()">Add Money</button>
-<button onclick="mode()">Play</button>
-<button onclick="rooms()">Rooms</button>
-<button onclick="submitResult()">Submit Result</button>
-<button onclick="history()">History</button>
-<button onclick="logout()">Logout</button>`;
-
-liveNotice();
-}
-
-/* ---------- PAYMENT ---------- */
-function pay(){
-app.innerHTML=`
-<h2>Add Money</h2>
-<img src="qr.jpg" width="200">
-<input type="file" id="file">
-<input id="amt">
-<button onclick="proof()">Submit</button>
-<button onclick="homeView()">Back</button>`;
-}
-
-function proof(){
-let u=getSession();
-let reader=new FileReader();
-reader.onload=()=>{
-let p=getProofs();
-p.push({user:u,amount:+amt.value,img:reader.result,status:"pending"});
-saveProofs(p);
-alert("Wait admin");
-homeView();
-};
-reader.readAsDataURL(file.files[0]);
-}
-
-/* ---------- ADMIN ---------- */
+// ===== ADMIN LOGIN =====
 function adminLogin(){
-let p=prompt("Password");
-if(p===ADMIN_PASS)admin();
+  app.innerHTML =
+  '<div class="box">'+
+  '<h2>ADMIN LOGIN</h2>'+
+  '<input id="auser" placeholder="Admin ID"><br>'+
+  '<input id="apass" placeholder="Password"><br>'+
+  '<button onclick="checkAdmin()">LOGIN</button>'+
+  '<button onclick="loginPage()">BACK</button>'+
+  '</div>';
 }
 
-function admin(){
-app.innerHTML=`
-<h2>Admin</h2>
-<button onclick="addMoney()">Add Money</button>
-<button onclick="createRoom()">Create Room</button>
-<button onclick="notice()">Send Notice</button>
-<button onclick="payments()">Payments</button>
-<button onclick="loginView()">Exit</button>`;
+function checkAdmin(){
+  if(auser.value=="TGCADMIN" && apass.value=="TEAMEGOISTIC"){
+    adminPanel();
+  } else alert("Wrong Admin");
 }
 
+// ===== ADMIN PANEL =====
+function adminPanel(){
+  app.innerHTML =
+  '<div class="box">'+
+  '<h2>ADMIN PANEL</h2>'+
+  '<input id="mode" placeholder="Mode (PER KILL ₹10)"><br>'+
+  '<input id="room" placeholder="Room ID"><br>'+
+  '<input id="pass" placeholder="Password"><br>'+
+  '<button onclick="releaseRoom()">RELEASE ROOM</button>'+
+  '<button onclick="loginPage()">LOGOUT</button>'+
+  '</div>';
+}
+
+function releaseRoom(){
+  let m=mode.value.toUpperCase().trim();
+  let data={room:room.value,pass:pass.value};
+  localStorage.setItem("room_"+m,JSON.stringify(data));
+  alert("Room Released");
+}
+
+// ===== HOME =====
+function home(){
+  let w = parseInt(localStorage.getItem("wallet")||0);
+
+  app.innerHTML =
+  '<div class="box">'+
+  '<h2>WELCOME '+localStorage.getItem("user")+'</h2>'+
+  '<h3>💰 Wallet: ₹'+w+'</h3>'+
+  '<button onclick="addMoney()">ADD MONEY</button><br>'+
+  '<button onclick="clash()">CLASH SQUAD</button>'+
+  '<button onclick="lone()">LONEWOLF</button>'+
+  '<button onclick="br()">BATTLE ROYAL</button>'+
+  '</div>';
+}
+
+// ===== ADD MONEY =====
 function addMoney(){
-app.innerHTML=`
-<input id="user"><input id="amt">
-<button onclick="addNow()">Add</button>`;
-}
-function addNow(){
-let db=getDB();
-db[user.value].wallet+=+amt.value;
-saveDB(db);
-admin();
+  let amt = prompt("Enter Amount");
+  if(!amt) return;
+
+  let w = parseInt(localStorage.getItem("wallet")||0);
+  w += parseInt(amt);
+  localStorage.setItem("wallet",w);
+
+  alert("Added ₹"+amt);
+  home();
 }
 
-/* ---------- PAYMENTS ---------- */
-function payments(){
-let p=getProofs(); let html="<h2>Payments</h2>";
-p.forEach((x,i)=>{
-if(x.status==="pending"){
-html+=`<div>
-<p>${x.user} ₹${x.amount}</p>
-<img src="${x.img}" width="100%">
-<button onclick="ok(${i})">OK</button>
-</div>`;
-}});
-app.innerHTML=html;
-}
-function ok(i){
-let p=getProofs(); let db=getDB();
-db[p[i].user].wallet+=p[i].amount;
-p[i].status="done";
-saveDB(db); saveProofs(p);
-payments();
+// ===== MODES =====
+function clash(){
+  showMode("CLASH");
 }
 
-/* ---------- NOTICE ---------- */
-function notice(){
-app.innerHTML=`<input id="msg"><button onclick="send()">Send</button>`;
-}
-function send(){
-let n=getNotices();
-n.push({text:msg.value,time:Date.now()});
-saveNotices(n);
-admin();
-}
-function liveNotice(){
-setInterval(()=>{
-let n=getNotices();
-if(n.length) document.getElementById("notice").innerText=n[n.length-1].text;
-},3000);
+function lone(){
+  showMode("LONE");
 }
 
-/* ---------- ROOMS ---------- */
-function createRoom(){
-app.innerHTML=`
-<input id="rid"><input id="rpass"><input id="time">
-<button onclick="saveRoom()">Save</button>`;
-}
-function saveRoom(){
-let r=getRooms();
-r.push({id:rid.value,pass:rpass.value,time:time.value});
-saveRooms(r);
-admin();
-}
-function rooms(){
-let r=getRooms(); let html="<h2>Rooms</h2>";
-r.forEach(x=>html+=`<p>${x.id} / ${x.pass} / ${x.time}</p>`);
-app.innerHTML=html;
+function showMode(name){
+  app.innerHTML =
+  '<div class="box">'+
+  '<h2>'+name+'</h2>'+
+  '<button onclick="joinMode(\''+name+' 1v1\')">1v1</button>'+
+  '<button onclick="joinMode(\''+name+' 2v2\')">2v2</button>'+
+  '<button onclick="joinMode(\''+name+' 3v3\')">3v3</button>'+
+  '<button onclick="joinMode(\''+name+' 4v4\')">4v4</button>'+
+  '<button onclick="home()">BACK</button>'+
+  '</div>';
 }
 
-/* ---------- GAME ---------- */
-function mode(){
-app.innerHTML=`
-<button onclick="time(20)">₹20</button>
-<button onclick="time(50)">₹50</button>`;
-}
-function time(p){
-app.innerHTML=`
-<button onclick="join(${p},'1:00')">1:00</button>
-<button onclick="join(${p},'2:00')">2:00</button>`;
-}
-function join(p,t){
-let u=getSession(),db=getDB();
-if(db[u].wallet<p)return alert("No money");
-db[u].wallet-=p; saveDB(db);
-
-let h=getHistory();
-h.push({user:u,price:p,time:t,kills:0,pp:0,prize:0,status:"pending"});
-saveHistory(h);
-
-homeView();
+// ===== BR =====
+function br(){
+  app.innerHTML =
+  '<div class="box">'+
+  '<h2>BATTLE ROYAL</h2>'+
+  '<button onclick="perKill()">PER KILL</button>'+
+  '<button onclick="scrims()">SCRIMS</button>'+
+  '<button onclick="home()">BACK</button>'+
+  '</div>';
 }
 
-/* ---------- RESULT ---------- */
-function submitResult(){
-let h=getHistory(); let u=getSession();
-let html="";
-h.forEach((x,i)=>{
-if(x.user===u&&x.status==="pending"){
-html+=`
-<input id="k${i}" placeholder="kills">
-<input id="p${i}" placeholder="pp">
-<input id="r${i}" placeholder="prize">
-<button onclick="saveR(${i})">Submit</button>`;
-}});
-app.innerHTML=html;
-}
-function saveR(i){
-let h=getHistory();
-h[i].kills=+document.getElementById("k"+i).value;
-h[i].pp=+document.getElementById("p"+i).value;
-h[i].prize=+document.getElementById("r"+i).value;
-h[i].status="done";
-saveHistory(h);
-homeView();
+// ===== PER KILL =====
+function perKill(){
+  app.innerHTML =
+  '<div class="box">'+
+  '<h2>PER KILL</h2>'+
+  card(10)+card(20)+card(30)+
+  '<button onclick="br()">BACK</button>'+
+  '</div>';
 }
 
-/* ---------- HISTORY ---------- */
-function history(){
-let h=getHistory(),u=getSession();
-let html="<h2>History</h2>";
-h.forEach(x=>{
-if(x.user===u){
-html+=`<p>₹${x.price} | ${x.time} | K:${x.kills} | PP:${x.pp} | ₹${x.prize}</p>`;
-}});
-app.innerHTML=html;
+function card(p){
+  let s=parseInt(localStorage.getItem("slot_"+p)||0);
+  return '<div class="box">'+
+  '<h3>₹'+p+'</h3>'+
+  '<p>'+s+'/48</p>'+
+  '<button onclick="joinPK('+p+')">JOIN</button>'+
+  '</div>';
 }
 
-/* ---------- START ---------- */
-loginView();
+function joinPK(p){
+  let s=parseInt(localStorage.getItem("slot_"+p)||0);
+  if(s>=48){alert("FULL");return;}
+  s++;
+  localStorage.setItem("slot_"+p,s);
+  joinMode("PER KILL ₹"+p);
+}
+
+// ===== SCRIMS =====
+function scrims(){
+  app.innerHTML =
+  '<div class="box">'+
+  '<h2>SCRIMS</h2>'+
+  scrimBtn(20)+scrimBtn(25)+scrimBtn(35)+scrimBtn(40)+
+  scrimBtn(45)+scrimBtn(50)+scrimBtn(55)+scrimBtn(75)+
+  '<button onclick="br()">BACK</button>'+
+  '</div>';
+}
+
+function scrimBtn(p){
+  return '<button onclick="joinMode(\'SCRIMS ₹'+p+'\')">₹'+p+'</button>';
+}
+
+// ===== JOIN =====
+function joinMode(type){
+
+  let times = [
+    "1:00 PM","1:30 PM","2:00 PM","2:30 PM",
+    "3:00 PM","3:30 PM","4:00 PM","4:30 PM","5:00 PM"
+  ];
+
+  let data = localStorage.getItem("room_"+type.toUpperCase().trim());
+
+  let msg = "WAIT FOR ADMIN";
+
+  if(data){
+    let r = JSON.parse(data);
+    msg = "ROOM: "+r.room+" | PASS: "+r.pass;
+  }
+
+  alert(
+    "JOINED\n\n"+type+
+    "\n\nTIME:\n"+times.join(", ")+
+    "\n\n"+msg
+  );
+}
+
+// START
+loginPage();
+
 </script>
+
 </body>
 </html>
