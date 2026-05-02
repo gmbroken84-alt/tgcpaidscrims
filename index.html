@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TGC Tournament</title>
-
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <title>TGC PAID SCRIMS</title>
 
   <style>
     body {
@@ -11,44 +9,44 @@
       font-family: Arial;
       color: white;
 
-      /* 🔥 YOUR BACKGROUND IMAGE */
-      background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)),
+      background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)),
                   url('bg.jpg') no-repeat center center fixed;
       background-size: cover;
     }
 
     #app {
-      max-width: 400px;
-      margin: 60px auto;
-      padding: 20px;
-      border-radius: 12px;
+      max-width: 420px;
+      margin: 40px auto;
+      padding: 25px;
+      border-radius: 15px;
       text-align: center;
 
       background: rgba(0,0,0,0.75);
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(8px);
       box-shadow: 0 0 25px #00bfff;
     }
 
+    h2 { font-size: 26px; }
+
     input {
-      width: 90%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 6px;
+      width: 95%;
+      padding: 14px;
+      margin: 12px 0;
+      border-radius: 8px;
       border: none;
+      font-size: 16px;
     }
 
     button {
-      padding: 10px 15px;
-      margin: 8px;
+      width: 90%;
+      padding: 14px;
+      margin: 10px 0;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       background: #00bfff;
       color: white;
+      font-size: 16px;
       cursor: pointer;
-    }
-
-    h2 {
-      margin-bottom: 15px;
     }
   </style>
 </head>
@@ -59,7 +57,6 @@
 
 <script>
 const app = document.getElementById("app");
-const ADMIN_CODE = "9999";
 
 /* ---------- STORAGE ---------- */
 
@@ -89,27 +86,20 @@ function logout() {
 function loginView() {
   app.innerHTML = `
     <h2>Login</h2>
-
     <input id="user" placeholder="Username">
     <input id="pass" type="password" placeholder="Password">
-
     <button onclick="login()">Login</button>
     <button onclick="registerView()">Create Account</button>
     <button onclick="forgotView()">Forgot Password</button>
-    <br><br>
-    <button onclick="adminLogin()">🔐 Admin</button>
   `;
 }
 
 function login() {
   let db = getDB();
-
   if (db[user.value] && db[user.value].pass === pass.value) {
     setSession(user.value);
     homeView();
-  } else {
-    alert("Wrong login");
-  }
+  } else alert("Wrong login");
 }
 
 /* ---------- REGISTER ---------- */
@@ -117,10 +107,8 @@ function login() {
 function registerView() {
   app.innerHTML = `
     <h2>Create Account</h2>
-
     <input id="newUser" placeholder="Username">
     <input id="newPass" type="password" placeholder="Password">
-
     <button onclick="createAccount()">Create</button>
     <button onclick="loginView()">Back</button>
   `;
@@ -128,15 +116,10 @@ function registerView() {
 
 function createAccount() {
   let db = getDB();
-
-  if (db[newUser.value]) {
-    alert("User exists");
-    return;
-  }
+  if (db[newUser.value]) return alert("User exists");
 
   db[newUser.value] = { pass: newPass.value, wallet: 0 };
   saveDB(db);
-
   alert("Account created");
   loginView();
 }
@@ -146,10 +129,8 @@ function createAccount() {
 function forgotView() {
   app.innerHTML = `
     <h2>Reset Password</h2>
-
     <input id="user" placeholder="Username">
     <input id="newPass" placeholder="New Password">
-
     <button onclick="resetPassword()">Update</button>
     <button onclick="loginView()">Back</button>
   `;
@@ -157,15 +138,10 @@ function forgotView() {
 
 function resetPassword() {
   let db = getDB();
-
-  if (!db[user.value]) {
-    alert("User not found");
-    return;
-  }
+  if (!db[user.value]) return alert("User not found");
 
   db[user.value].pass = newPass.value;
   saveDB(db);
-
   alert("Updated");
   loginView();
 }
@@ -180,112 +156,111 @@ function homeView() {
 
   app.innerHTML = `
     <h2>Dashboard</h2>
-
     <p>Wallet: ₹${db[u].wallet}</p>
 
     <button onclick="payNow()">💸 Add Money</button>
-    <button onclick="scrimsView()">🎮 Join Match</button>
+    <button onclick="scrimsView()">🎮 Join Scrims</button>
     <button onclick="logout()">Logout</button>
   `;
 }
 
-/* ---------- PAYMENT ---------- */
+/* ---------- QR PAYMENT ---------- */
 
 function payNow() {
-  var options = {
-    key: "rzp_test_xxxxx",
-    amount: 5000,
-    currency: "INR",
-    name: "TGC Tournament",
+  app.innerHTML = `
+    <h2>💸 Add Money</h2>
 
-    handler: function () {
-      let u = getSession();
-      let db = getDB();
+    <img src="qr.jpg" style="width:250px;border-radius:10px">
 
-      db[u].wallet += 50;
-      saveDB(db);
+    <p>Scan & Pay → Enter Amount</p>
 
-      alert("₹50 Added");
-      homeView();
-    }
-  };
+    <input id="amt" placeholder="Enter Amount Paid">
 
-  var rzp = new Razorpay(options);
-  rzp.open();
+    <button onclick="confirmPayment()">I Paid</button>
+    <button onclick="homeView()">Back</button>
+  `;
+}
+
+function confirmPayment() {
+  let u = getSession();
+  let db = getDB();
+
+  let amount = parseInt(amt.value);
+
+  if (!amount) return alert("Enter valid amount");
+
+  db[u].wallet += amount;
+  saveDB(db);
+
+  alert("₹" + amount + " added");
+  homeView();
 }
 
 /* ---------- SCRIMS ---------- */
 
 function scrimsView() {
   app.innerHTML = `
-    <h2>🔥 Scrims</h2>
+    <h2>🔥 ADD LOBBY SCRIMS</h2>
 
-    <p>₹25 Match</p>
-    <button onclick="joinMatch(25)">Join ₹25</button>
+    ${card(20,"Top1 ₹100 • Top2 ₹50 • Top3 ₹40")}
+    ${card(25,"Top1 ₹100 • Top2 ₹50 • Top3 ₹50 • Top4 ₹40")}
+    ${card(35,"Top1 ₹150 • Top2 ₹100 • Top3 ₹80 • Top4 ₹40")}
+    ${card(40,"Top1 ₹180 • Top2 ₹100 • Top3 ₹60 • Top4 ₹40")}
+    ${card(45,"Top1 ₹200 • Top2 ₹100 • Top3 ₹50 • Top4 ₹40")}
+    ${card(50,"Top1 ₹240 • Top2 ₹120 • Top3 ₹90 • Top4 ₹50")}
+    ${card(55,"Top1 ₹260 • Top2 ₹150 • Top3 ₹100 • Top4 ₹50")}
+    ${card(75,"Top1 ₹300 • Top2 ₹200 • Top3 ₹100 • Top4 ₹100 • Top5 ₹50")}
 
-    <p>₹50 Match</p>
-    <button onclick="joinMatch(50)">Join ₹50</button>
-
-    <br><br>
     <button onclick="homeView()">Back</button>
   `;
 }
 
-function joinMatch(amount) {
-  let u = getSession();
-  let db = getDB();
-
-  if (db[u].wallet < amount) {
-    alert("Not enough money");
-    return;
-  }
-
-  db[u].wallet -= amount;
-  saveDB(db);
-
-  alert("Joined ₹" + amount);
-  homeView();
-}
-
-/* ---------- ADMIN ---------- */
-
-function adminLogin() {
-  let code = prompt("Enter Admin Code");
-
-  if (code === ADMIN_CODE) {
-    adminView();
-  } else {
-    alert("Wrong code");
-  }
-}
-
-function adminView() {
-  app.innerHTML = `
-    <h2>🔐 Admin Panel</h2>
-
-    <button onclick="addMoneyAll()">Give ₹100 All</button>
-    <button onclick="resetAll()">Reset All</button>
-
-    <br><br>
-    <button onclick="loginView()">Exit</button>
+function card(price, prize) {
+  return `
+    <div style="border:1px solid #00bfff;margin:10px;padding:10px;border-radius:10px;">
+      <h3>₹${price} SCRIMS</h3>
+      <p>${prize}</p>
+      <button onclick="selectTime(${price})">Join ₹${price}</button>
+    </div>
   `;
 }
 
-function addMoneyAll() {
-  let db = getDB();
+/* ---------- TIME SELECT ---------- */
 
-  for (let u in db) {
-    db[u].wallet += 100;
-  }
+function selectTime(price) {
+  app.innerHTML = `
+    <h2>Select Time ₹${price}</h2>
 
-  saveDB(db);
-  alert("Money added");
+    ${time(price,"3:00 Day")}
+    ${time(price,"1:00 Day")}
+    ${time(price,"1:00 Night")}
+    ${time(price,"12:00 Night")}
+    ${time(price,"12:00 Day")}
+    ${time(price,"6:00 Evening")}
+    ${time(price,"9:00 Day")}
+    ${time(price,"9:00 Night")}
+
+    <button onclick="scrimsView()">Back</button>
+  `;
 }
 
-function resetAll() {
-  localStorage.clear();
-  alert("All cleared");
-  loginView();
+function time(price, t) {
+  return `<button onclick="joinMatch(${price},'${t}')">${t}</button>`;
+}
+
+/* ---------- JOIN ---------- */
+
+function joinMatch(price, time) {
+  let u = getSession();
+  let db = getDB();
+
+  if (db[u].wallet < price) return alert("Not enough money");
+
+  db[u].wallet -= price;
+  saveDB(db);
+
+  alert("Joined ₹"+price+" at "+time);
+  homeView();
 }
 
 /* ---------- START ---------- */
