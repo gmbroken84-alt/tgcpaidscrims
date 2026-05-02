@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TGC PAID SCRIMS </title>
+  <title>TGC PAID SCRIMS</title>
 
   <style>
     body {
@@ -46,279 +46,254 @@
 
 <script>
 const app = document.getElementById("app");
-const ADMIN_PASS = "9999";
+const ADMIN_PASS = "TEAMEGOISTIC";
 
 /* ---------- STORAGE ---------- */
+const getDB=()=>JSON.parse(localStorage.getItem("users"))||{};
+const saveDB=(d)=>localStorage.setItem("users",JSON.stringify(d));
 
-function getDB() {
-  return JSON.parse(localStorage.getItem("users")) || {};
-}
-function saveDB(db) {
-  localStorage.setItem("users", JSON.stringify(db));
-}
-function getProofs() {
-  return JSON.parse(localStorage.getItem("proofs")) || [];
-}
-function saveProofs(p) {
-  localStorage.setItem("proofs", JSON.stringify(p));
-}
-function setSession(u) {
-  localStorage.setItem("session", u);
-}
-function getSession() {
-  return localStorage.getItem("session");
-}
-function logout() {
-  localStorage.removeItem("session");
-  loginView();
-}
+const getProofs=()=>JSON.parse(localStorage.getItem("proofs"))||[];
+const saveProofs=(p)=>localStorage.setItem("proofs",JSON.stringify(p));
+
+const getRooms=()=>JSON.parse(localStorage.getItem("rooms"))||[];
+const saveRooms=(r)=>localStorage.setItem("rooms",JSON.stringify(r));
+
+const getNotices=()=>JSON.parse(localStorage.getItem("notices"))||[];
+const saveNotices=(n)=>localStorage.setItem("notices",JSON.stringify(n));
+
+const getHistory=()=>JSON.parse(localStorage.getItem("history"))||[];
+const saveHistory=(h)=>localStorage.setItem("history",JSON.stringify(h));
+
+const setSession=(u)=>localStorage.setItem("session",u);
+const getSession=()=>localStorage.getItem("session");
+const logout=()=>{localStorage.removeItem("session");loginView();};
 
 /* ---------- LOGIN ---------- */
-
-function loginView() {
-  app.innerHTML = `
-    <h2>Login</h2>
-    <input id="user" placeholder="Username">
-    <input id="pass" type="password" placeholder="Password">
-    <button onclick="login()">Login</button>
-    <button onclick="registerView()">Create Account</button>
-    <button onclick="forgotView()">Forgot Password</button>
-    <button onclick="adminLogin()">Admin</button>
-  `;
+function loginView(){
+app.innerHTML=`
+<h2>Login</h2>
+<input id="user" placeholder="Username">
+<input id="pass" type="password">
+<button onclick="login()">Login</button>
+<button onclick="registerView()">Register</button>
+<button onclick="adminLogin()">Admin</button>`;
 }
 
-function login() {
-  let db = getDB();
-  if (db[user.value] && db[user.value].pass === pass.value) {
-    setSession(user.value);
-    homeView();
-  } else alert("Wrong login");
+function login(){
+let db=getDB();
+if(db[user.value]&&db[user.value].pass===pass.value){
+setSession(user.value);
+homeView();
+}else alert("Wrong");
 }
 
 /* ---------- REGISTER ---------- */
-
-function registerView() {
-  app.innerHTML = `
-    <h2>Create Account</h2>
-    <input id="newUser" placeholder="Username">
-    <input id="newPass" type="password" placeholder="Password">
-    <button onclick="createAccount()">Create</button>
-    <button onclick="loginView()">Back</button>
-  `;
+function registerView(){
+app.innerHTML=`
+<h2>Register</h2>
+<input id="newUser">
+<input id="newPass" type="password">
+<button onclick="createAccount()">Create</button>
+<button onclick="loginView()">Back</button>`;
 }
 
-function createAccount() {
-  let db = getDB();
-  if (db[newUser.value]) return alert("User exists");
-
-  db[newUser.value] = { pass: newPass.value, wallet: 0 };
-  saveDB(db);
-  alert("Account created");
-  loginView();
-}
-
-/* ---------- RESET ---------- */
-
-function forgotView() {
-  app.innerHTML = `
-    <h2>Reset Password</h2>
-    <input id="user" placeholder="Username">
-    <input id="newPass" placeholder="New Password">
-    <button onclick="resetPassword()">Update</button>
-    <button onclick="loginView()">Back</button>
-  `;
-}
-
-function resetPassword() {
-  let db = getDB();
-  if (!db[user.value]) return alert("User not found");
-
-  db[user.value].pass = newPass.value;
-  saveDB(db);
-  alert("Updated");
-  loginView();
+function createAccount(){
+let db=getDB();
+if(db[newUser.value])return alert("Exists");
+db[newUser.value]={pass:newPass.value,wallet:0};
+saveDB(db);
+loginView();
 }
 
 /* ---------- HOME ---------- */
+function homeView(){
+let u=getSession(); if(!u)return loginView();
+let db=getDB();
 
-function homeView() {
-  let u = getSession();
-  if (!u) return loginView();
+app.innerHTML=`
+<h2>Dashboard</h2>
+<div id="notice" style="color:yellow"></div>
 
-  let db = getDB();
+<p>Wallet: ₹${db[u].wallet}</p>
 
-  app.innerHTML = `
-    <h2>Dashboard</h2>
-    <p>Wallet: ₹${db[u].wallet}</p>
+<button onclick="pay()">Add Money</button>
+<button onclick="mode()">Play</button>
+<button onclick="rooms()">Rooms</button>
+<button onclick="submitResult()">Submit Result</button>
+<button onclick="history()">History</button>
+<button onclick="logout()">Logout</button>`;
 
-    <button onclick="payNow()">💸 Add Money</button>
-    <button onclick="modeSelect()">🎮 Play Modes</button>
-    <button onclick="logout()">Logout</button>
-  `;
+liveNotice();
 }
 
-/* ---------- PAYMENT PROOF ---------- */
-
-function payNow() {
-  app.innerHTML = `
-    <h2>Add Money</h2>
-    <img src="qr.jpg" style="width:220px">
-
-    <p>Pay & Upload Screenshot</p>
-
-    <input type="file" id="proof">
-    <input id="amt" placeholder="Enter Amount">
-
-    <button onclick="submitProof()">Submit</button>
-    <button onclick="homeView()">Back</button>
-  `;
+/* ---------- PAYMENT ---------- */
+function pay(){
+app.innerHTML=`
+<h2>Add Money</h2>
+<img src="qr.jpg" width="200">
+<input type="file" id="file">
+<input id="amt">
+<button onclick="proof()">Submit</button>
+<button onclick="homeView()">Back</button>`;
 }
 
-function submitProof() {
-  let u = getSession();
-  let file = proof.files[0];
-  let amount = parseInt(amt.value);
-
-  if (!file || !amount) return alert("Fill all");
-
-  let reader = new FileReader();
-  reader.onload = function() {
-    let proofs = getProofs();
-    proofs.push({user:u, amount, img:reader.result, status:"pending"});
-    saveProofs(proofs);
-
-    alert("Submitted. Wait for admin.");
-    homeView();
-  };
-  reader.readAsDataURL(file);
+function proof(){
+let u=getSession();
+let reader=new FileReader();
+reader.onload=()=>{
+let p=getProofs();
+p.push({user:u,amount:+amt.value,img:reader.result,status:"pending"});
+saveProofs(p);
+alert("Wait admin");
+homeView();
+};
+reader.readAsDataURL(file.files[0]);
 }
 
 /* ---------- ADMIN ---------- */
-
-function adminLogin() {
-  let p = prompt("Enter Admin Password");
-  if (p === ADMIN_PASS) adminPanel();
-  else alert("Wrong");
+function adminLogin(){
+let p=prompt("Password");
+if(p===ADMIN_PASS)admin();
 }
 
-function adminPanel() {
-  let proofs = getProofs();
-  let html = `<h2>Payment Requests</h2>`;
-
-  proofs.forEach((p,i)=>{
-    if(p.status==="pending"){
-      html+=`
-        <div style="border:1px solid #00bfff;margin:10px;padding:10px">
-          <p>${p.user} - ₹${p.amount}</p>
-          <img src="${p.img}" style="width:100%">
-          <button onclick="approve(${i})">Approve</button>
-          <button onclick="reject(${i})">Reject</button>
-        </div>
-      `;
-    }
-  });
-
-  html+=`<button onclick="loginView()">Exit</button>`;
-  app.innerHTML = html;
+function admin(){
+app.innerHTML=`
+<h2>Admin</h2>
+<button onclick="addMoney()">Add Money</button>
+<button onclick="createRoom()">Create Room</button>
+<button onclick="notice()">Send Notice</button>
+<button onclick="payments()">Payments</button>
+<button onclick="loginView()">Exit</button>`;
 }
 
-function approve(i){
-  let proofs = getProofs();
-  let db = getDB();
-
-  let p = proofs[i];
-  db[p.user].wallet += p.amount;
-
-  proofs[i].status="approved";
-
-  saveDB(db);
-  saveProofs(proofs);
-
-  alert("Approved");
-  adminPanel();
+function addMoney(){
+app.innerHTML=`
+<input id="user"><input id="amt">
+<button onclick="addNow()">Add</button>`;
+}
+function addNow(){
+let db=getDB();
+db[user.value].wallet+=+amt.value;
+saveDB(db);
+admin();
 }
 
-function reject(i){
-  let proofs = getProofs();
-  proofs[i].status="rejected";
-  saveProofs(proofs);
-  adminPanel();
+/* ---------- PAYMENTS ---------- */
+function payments(){
+let p=getProofs(); let html="<h2>Payments</h2>";
+p.forEach((x,i)=>{
+if(x.status==="pending"){
+html+=`<div>
+<p>${x.user} ₹${x.amount}</p>
+<img src="${x.img}" width="100%">
+<button onclick="ok(${i})">OK</button>
+</div>`;
+}});
+app.innerHTML=html;
+}
+function ok(i){
+let p=getProofs(); let db=getDB();
+db[p[i].user].wallet+=p[i].amount;
+p[i].status="done";
+saveDB(db); saveProofs(p);
+payments();
 }
 
-/* ---------- MODES ---------- */
-
-function modeSelect(){
-  app.innerHTML=`
-    <h2>Select Mode</h2>
-
-    <button onclick="scrims('CLASH SQUAD')">CLASH SQUAD</button>
-    <button onclick="scrims('LONE WOLF')">LONE WOLF</button>
-    <button onclick="scrims('BR PER KILL')">BR PER KILL</button>
-
-    <button onclick="homeView()">Back</button>
-  `;
+/* ---------- NOTICE ---------- */
+function notice(){
+app.innerHTML=`<input id="msg"><button onclick="send()">Send</button>`;
+}
+function send(){
+let n=getNotices();
+n.push({text:msg.value,time:Date.now()});
+saveNotices(n);
+admin();
+}
+function liveNotice(){
+setInterval(()=>{
+let n=getNotices();
+if(n.length) document.getElementById("notice").innerText=n[n.length-1].text;
+},3000);
 }
 
-/* ---------- SCRIMS ---------- */
-
-function scrims(mode){
-  app.innerHTML=`
-    <h2>${mode}</h2>
-
-    <button onclick="timeSelect(20)">₹20</button>
-    <button onclick="timeSelect(25)">₹25</button>
-    <button onclick="timeSelect(35)">₹35</button>
-    <button onclick="timeSelect(40)">₹40</button>
-    <button onclick="timeSelect(45)">₹45</button>
-    <button onclick="timeSelect(50)">₹50</button>
-
-    <button onclick="modeSelect()">Back</button>
-  `;
+/* ---------- ROOMS ---------- */
+function createRoom(){
+app.innerHTML=`
+<input id="rid"><input id="rpass"><input id="time">
+<button onclick="saveRoom()">Save</button>`;
+}
+function saveRoom(){
+let r=getRooms();
+r.push({id:rid.value,pass:rpass.value,time:time.value});
+saveRooms(r);
+admin();
+}
+function rooms(){
+let r=getRooms(); let html="<h2>Rooms</h2>";
+r.forEach(x=>html+=`<p>${x.id} / ${x.pass} / ${x.time}</p>`);
+app.innerHTML=html;
 }
 
-/* ---------- TIME ---------- */
+/* ---------- GAME ---------- */
+function mode(){
+app.innerHTML=`
+<button onclick="time(20)">₹20</button>
+<button onclick="time(50)">₹50</button>`;
+}
+function time(p){
+app.innerHTML=`
+<button onclick="join(${p},'1:00')">1:00</button>
+<button onclick="join(${p},'2:00')">2:00</button>`;
+}
+function join(p,t){
+let u=getSession(),db=getDB();
+if(db[u].wallet<p)return alert("No money");
+db[u].wallet-=p; saveDB(db);
 
-function timeSelect(price){
-  app.innerHTML=`
-    <h2>Select Time ₹${price}</h2>
+let h=getHistory();
+h.push({user:u,price:p,time:t,kills:0,pp:0,prize:0,status:"pending"});
+saveHistory(h);
 
-    ${t(price,"1:00")}
-    ${t(price,"1:30")}
-    ${t(price,"2:00")}
-    ${t(price,"2:30")}
-    ${t(price,"3:00")}
-    ${t(price,"3:30")}
-    ${t(price,"4:00")}
-    ${t(price,"4:30")}
-    ${t(price,"5:00")}
-
-    <button onclick="modeSelect()">Back</button>
-  `;
+homeView();
 }
 
-function t(price,time){
-  return `<button onclick="join(${price},'${time}')">${time}</button>`;
+/* ---------- RESULT ---------- */
+function submitResult(){
+let h=getHistory(); let u=getSession();
+let html="";
+h.forEach((x,i)=>{
+if(x.user===u&&x.status==="pending"){
+html+=`
+<input id="k${i}" placeholder="kills">
+<input id="p${i}" placeholder="pp">
+<input id="r${i}" placeholder="prize">
+<button onclick="saveR(${i})">Submit</button>`;
+}});
+app.innerHTML=html;
+}
+function saveR(i){
+let h=getHistory();
+h[i].kills=+document.getElementById("k"+i).value;
+h[i].pp=+document.getElementById("p"+i).value;
+h[i].prize=+document.getElementById("r"+i).value;
+h[i].status="done";
+saveHistory(h);
+homeView();
 }
 
-/* ---------- JOIN ---------- */
-
-function join(price,time){
-  let u=getSession();
-  let db=getDB();
-
-  if(db[u].wallet<price) return alert("Not enough money");
-
-  db[u].wallet-=price;
-  saveDB(db);
-
-  alert("Joined ₹"+price+" at "+time);
-  homeView();
+/* ---------- HISTORY ---------- */
+function history(){
+let h=getHistory(),u=getSession();
+let html="<h2>History</h2>";
+h.forEach(x=>{
+if(x.user===u){
+html+=`<p>₹${x.price} | ${x.time} | K:${x.kills} | PP:${x.pp} | ₹${x.prize}</p>`;
+}});
+app.innerHTML=html;
 }
 
 /* ---------- START ---------- */
-
 loginView();
 </script>
-
 </body>
 </html>
