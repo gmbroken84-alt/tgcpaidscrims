@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TGC Tournament</title>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      color: white;
+
+      /* 🔥 YOUR BACKGROUND IMAGE */
+      background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)),
+                  url('bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    #app {
+      max-width: 400px;
+      margin: 60px auto;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 0 25px #00bfff;
+    }
+
+    input {
+      width: 90%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: none;
+    }
+
+    button {
+      padding: 10px 15px;
+      margin: 8px;
+      border: none;
+      border-radius: 6px;
+      background: #00bfff;
+      color: white;
+      cursor: pointer;
+    }
+
+    h2 {
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="app"></div>
+
+<script>
+const app = document.getElementById("app");
+const ADMIN_CODE = "9999";
+
+/* ---------- STORAGE ---------- */
+
+function getDB() {
+  return JSON.parse(localStorage.getItem("users")) || {};
+}
+
+function saveDB(db) {
+  localStorage.setItem("users", JSON.stringify(db));
+}
+
+function setSession(u) {
+  localStorage.setItem("session", u);
+}
+
+function getSession() {
+  return localStorage.getItem("session");
+}
+
+function logout() {
+  localStorage.removeItem("session");
+  loginView();
+}
+
+/* ---------- LOGIN ---------- */
+
+function loginView() {
+  app.innerHTML = `
+    <h2>Login</h2>
+
+    <input id="user" placeholder="Username">
+    <input id="pass" type="password" placeholder="Password">
+
+    <button onclick="login()">Login</button>
+    <button onclick="registerView()">Create Account</button>
+    <button onclick="forgotView()">Forgot Password</button>
+    <br><br>
+    <button onclick="adminLogin()">🔐 Admin</button>
+  `;
+}
+
+function login() {
+  let db = getDB();
+
+  if (db[user.value] && db[user.value].pass === pass.value) {
+    setSession(user.value);
+    homeView();
+  } else {
+    alert("Wrong login");
+  }
+}
+
+/* ---------- REGISTER ---------- */
+
+function registerView() {
+  app.innerHTML = `
+    <h2>Create Account</h2>
+
+    <input id="newUser" placeholder="Username">
+    <input id="newPass" type="password" placeholder="Password">
+
+    <button onclick="createAccount()">Create</button>
+    <button onclick="loginView()">Back</button>
+  `;
+}
+
+function createAccount() {
+  let db = getDB();
+
+  if (db[newUser.value]) {
+    alert("User exists");
+    return;
+  }
+
+  db[newUser.value] = { pass: newPass.value, wallet: 0 };
+  saveDB(db);
+
+  alert("Account created");
+  loginView();
+}
+
+/* ---------- RESET ---------- */
+
+function forgotView() {
+  app.innerHTML = `
+    <h2>Reset Password</h2>
+
+    <input id="user" placeholder="Username">
+    <input id="newPass" placeholder="New Password">
+
+    <button onclick="resetPassword()">Update</button>
+    <button onclick="loginView()">Back</button>
+  `;
+}
+
+function resetPassword() {
+  let db = getDB();
+
+  if (!db[user.value]) {
+    alert("User not found");
+    return;
+  }
+
+  db[user.value].pass = newPass.value;
+  saveDB(db);
+
+  alert("Updated");
+  loginView();
+}
+
+/* ---------- HOME ---------- */
+
+function homeView() {
+  let u = getSession();
+  if (!u) return loginView();
+
+  let db = getDB();
+
+  app.innerHTML = `
+    <h2>Dashboard</h2>
+
+    <p>Wallet: ₹${db[u].wallet}</p>
+
+    <button onclick="payNow()">💸 Add Money</button>
+    <button onclick="scrimsView()">🎮 Join Match</button>
+    <button onclick="logout()">Logout</button>
+  `;
+}
+
+/* ---------- PAYMENT ---------- */
+
+function payNow() {
+  var options = {
+    key: "rzp_test_xxxxx",
+    amount: 5000,
+    currency: "INR",
+    name: "TGC Tournament",
+
+    handler: function () {
+      let u = getSession();
+      let db = getDB();
+
+      db[u].wallet += 50;
+      saveDB(db);
+
+      alert("₹50 Added");
+      homeView();
+    }
+  };
+
+  var rzp = new Razorpay(options);
+  rzp.open();
+}
+
+/* ---------- SCRIMS ---------- */
+
+function scrimsView() {
+  app.innerHTML = `
+    <h2>🔥 Scrims</h2>
+
+    <p>₹25 Match</p>
+    <button onclick="joinMatch(25)">Join ₹25</button>
+
+    <p>₹50 Match</p>
+    <button onclick="joinMatch(50)">Join ₹50</button>
+
+    <br><br>
+    <button onclick="homeView()">Back</button>
+  `;
+}
+
+function joinMatch(amount) {
+  let u = getSession();
+  let db = getDB();
+
+  if (db[u].wallet < amount) {
+    alert("Not enough money");
+    return;
+  }
+
+  db[u].wallet -= amount;
+  saveDB(db);
+
+  alert("Joined ₹" + amount);
+  homeView();
+}
+
+/* ---------- ADMIN ---------- */
+
+function adminLogin() {
+  let code = prompt("Enter Admin Code");
+
+  if (code === ADMIN_CODE) {
+    adminView();
+  } else {
+    alert("Wrong code");
+  }
+}
+
+function adminView() {
+  app.innerHTML = `
+    <h2>🔐 Admin Panel</h2>
+
+    <button onclick="addMoneyAll()">Give ₹100 All</button>
+    <button onclick="resetAll()">Reset All</button>
+
+    <br><br>
+    <button onclick="loginView()">Exit</button>
+  `;
+}
+
+function addMoneyAll() {
+  let db = getDB();
+
+  for (let u in db) {
+    db[u].wallet += 100;
+  }
+
+  saveDB(db);
+  alert("Money added");
+}
+
+function resetAll() {
+  localStorage.clear();
+  alert("All cleared");
+  loginView();
+}
+
+/* ---------- START ---------- */
+
+loginView();
+</script>
+
+</body>
+</html>
