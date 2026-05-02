@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TGC PAID SCRIMS</title>
+  <title>TGC PAID SCRIMS </title>
 
   <style>
     body {
       margin: 0;
       font-family: Arial;
       color: white;
-
       background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)),
                   url('bg.jpg') no-repeat center center fixed;
       background-size: cover;
@@ -20,62 +19,55 @@
       padding: 25px;
       border-radius: 15px;
       text-align: center;
-
       background: rgba(0,0,0,0.75);
       backdrop-filter: blur(8px);
       box-shadow: 0 0 25px #00bfff;
     }
 
-    h2 { font-size: 26px; }
-
-    input {
+    input, button {
       width: 95%;
       padding: 14px;
-      margin: 12px 0;
+      margin: 10px 0;
       border-radius: 8px;
       border: none;
       font-size: 16px;
     }
 
     button {
-      width: 90%;
-      padding: 14px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 8px;
       background: #00bfff;
       color: white;
-      font-size: 16px;
       cursor: pointer;
     }
   </style>
 </head>
 
 <body>
-
 <div id="app"></div>
 
 <script>
 const app = document.getElementById("app");
+const ADMIN_PASS = "9999";
 
 /* ---------- STORAGE ---------- */
 
 function getDB() {
   return JSON.parse(localStorage.getItem("users")) || {};
 }
-
 function saveDB(db) {
   localStorage.setItem("users", JSON.stringify(db));
 }
-
+function getProofs() {
+  return JSON.parse(localStorage.getItem("proofs")) || [];
+}
+function saveProofs(p) {
+  localStorage.setItem("proofs", JSON.stringify(p));
+}
 function setSession(u) {
   localStorage.setItem("session", u);
 }
-
 function getSession() {
   return localStorage.getItem("session");
 }
-
 function logout() {
   localStorage.removeItem("session");
   loginView();
@@ -91,6 +83,7 @@ function loginView() {
     <button onclick="login()">Login</button>
     <button onclick="registerView()">Create Account</button>
     <button onclick="forgotView()">Forgot Password</button>
+    <button onclick="adminLogin()">Admin</button>
   `;
 }
 
@@ -159,104 +152,163 @@ function homeView() {
     <p>Wallet: ₹${db[u].wallet}</p>
 
     <button onclick="payNow()">💸 Add Money</button>
-    <button onclick="scrimsView()">🎮 Join Scrims</button>
+    <button onclick="modeSelect()">🎮 Play Modes</button>
     <button onclick="logout()">Logout</button>
   `;
 }
 
-/* ---------- QR PAYMENT ---------- */
+/* ---------- PAYMENT PROOF ---------- */
 
 function payNow() {
   app.innerHTML = `
-    <h2>💸 Add Money</h2>
+    <h2>Add Money</h2>
+    <img src="qr.jpg" style="width:220px">
 
-    <img src="qr.jpg" style="width:250px;border-radius:10px">
+    <p>Pay & Upload Screenshot</p>
 
-    <p>Scan & Pay → Enter Amount</p>
+    <input type="file" id="proof">
+    <input id="amt" placeholder="Enter Amount">
 
-    <input id="amt" placeholder="Enter Amount Paid">
-
-    <button onclick="confirmPayment()">I Paid</button>
+    <button onclick="submitProof()">Submit</button>
     <button onclick="homeView()">Back</button>
   `;
 }
 
-function confirmPayment() {
+function submitProof() {
   let u = getSession();
-  let db = getDB();
-
+  let file = proof.files[0];
   let amount = parseInt(amt.value);
 
-  if (!amount) return alert("Enter valid amount");
+  if (!file || !amount) return alert("Fill all");
 
-  db[u].wallet += amount;
+  let reader = new FileReader();
+  reader.onload = function() {
+    let proofs = getProofs();
+    proofs.push({user:u, amount, img:reader.result, status:"pending"});
+    saveProofs(proofs);
+
+    alert("Submitted. Wait for admin.");
+    homeView();
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ---------- ADMIN ---------- */
+
+function adminLogin() {
+  let p = prompt("Enter Admin Password");
+  if (p === ADMIN_PASS) adminPanel();
+  else alert("Wrong");
+}
+
+function adminPanel() {
+  let proofs = getProofs();
+  let html = `<h2>Payment Requests</h2>`;
+
+  proofs.forEach((p,i)=>{
+    if(p.status==="pending"){
+      html+=`
+        <div style="border:1px solid #00bfff;margin:10px;padding:10px">
+          <p>${p.user} - ₹${p.amount}</p>
+          <img src="${p.img}" style="width:100%">
+          <button onclick="approve(${i})">Approve</button>
+          <button onclick="reject(${i})">Reject</button>
+        </div>
+      `;
+    }
+  });
+
+  html+=`<button onclick="loginView()">Exit</button>`;
+  app.innerHTML = html;
+}
+
+function approve(i){
+  let proofs = getProofs();
+  let db = getDB();
+
+  let p = proofs[i];
+  db[p.user].wallet += p.amount;
+
+  proofs[i].status="approved";
+
   saveDB(db);
+  saveProofs(proofs);
 
-  alert("₹" + amount + " added");
-  homeView();
+  alert("Approved");
+  adminPanel();
+}
+
+function reject(i){
+  let proofs = getProofs();
+  proofs[i].status="rejected";
+  saveProofs(proofs);
+  adminPanel();
+}
+
+/* ---------- MODES ---------- */
+
+function modeSelect(){
+  app.innerHTML=`
+    <h2>Select Mode</h2>
+
+    <button onclick="scrims('CLASH SQUAD')">CLASH SQUAD</button>
+    <button onclick="scrims('LONE WOLF')">LONE WOLF</button>
+    <button onclick="scrims('BR PER KILL')">BR PER KILL</button>
+
+    <button onclick="homeView()">Back</button>
+  `;
 }
 
 /* ---------- SCRIMS ---------- */
 
-function scrimsView() {
-  app.innerHTML = `
-    <h2>🔥 ADD LOBBY SCRIMS</h2>
+function scrims(mode){
+  app.innerHTML=`
+    <h2>${mode}</h2>
 
-    ${card(20,"Top1 ₹100 • Top2 ₹50 • Top3 ₹40")}
-    ${card(25,"Top1 ₹100 • Top2 ₹50 • Top3 ₹50 • Top4 ₹40")}
-    ${card(35,"Top1 ₹150 • Top2 ₹100 • Top3 ₹80 • Top4 ₹40")}
-    ${card(40,"Top1 ₹180 • Top2 ₹100 • Top3 ₹60 • Top4 ₹40")}
-    ${card(45,"Top1 ₹200 • Top2 ₹100 • Top3 ₹50 • Top4 ₹40")}
-    ${card(50,"Top1 ₹240 • Top2 ₹120 • Top3 ₹90 • Top4 ₹50")}
-    ${card(55,"Top1 ₹260 • Top2 ₹150 • Top3 ₹100 • Top4 ₹50")}
-    ${card(75,"Top1 ₹300 • Top2 ₹200 • Top3 ₹100 • Top4 ₹100 • Top5 ₹50")}
+    <button onclick="timeSelect(20)">₹20</button>
+    <button onclick="timeSelect(25)">₹25</button>
+    <button onclick="timeSelect(35)">₹35</button>
+    <button onclick="timeSelect(40)">₹40</button>
+    <button onclick="timeSelect(45)">₹45</button>
+    <button onclick="timeSelect(50)">₹50</button>
 
-    <button onclick="homeView()">Back</button>
+    <button onclick="modeSelect()">Back</button>
   `;
 }
 
-function card(price, prize) {
-  return `
-    <div style="border:1px solid #00bfff;margin:10px;padding:10px;border-radius:10px;">
-      <h3>₹${price} SCRIMS</h3>
-      <p>${prize}</p>
-      <button onclick="selectTime(${price})">Join ₹${price}</button>
-    </div>
-  `;
-}
+/* ---------- TIME ---------- */
 
-/* ---------- TIME SELECT ---------- */
-
-function selectTime(price) {
-  app.innerHTML = `
+function timeSelect(price){
+  app.innerHTML=`
     <h2>Select Time ₹${price}</h2>
 
-    ${time(price,"3:00 Day")}
-    ${time(price,"1:00 Day")}
-    ${time(price,"1:00 Night")}
-    ${time(price,"12:00 Night")}
-    ${time(price,"12:00 Day")}
-    ${time(price,"6:00 Evening")}
-    ${time(price,"9:00 Day")}
-    ${time(price,"9:00 Night")}
+    ${t(price,"1:00")}
+    ${t(price,"1:30")}
+    ${t(price,"2:00")}
+    ${t(price,"2:30")}
+    ${t(price,"3:00")}
+    ${t(price,"3:30")}
+    ${t(price,"4:00")}
+    ${t(price,"4:30")}
+    ${t(price,"5:00")}
 
-    <button onclick="scrimsView()">Back</button>
+    <button onclick="modeSelect()">Back</button>
   `;
 }
 
-function time(price, t) {
-  return `<button onclick="joinMatch(${price},'${t}')">${t}</button>`;
+function t(price,time){
+  return `<button onclick="join(${price},'${time}')">${time}</button>`;
 }
 
 /* ---------- JOIN ---------- */
 
-function joinMatch(price, time) {
-  let u = getSession();
-  let db = getDB();
+function join(price,time){
+  let u=getSession();
+  let db=getDB();
 
-  if (db[u].wallet < price) return alert("Not enough money");
+  if(db[u].wallet<price) return alert("Not enough money");
 
-  db[u].wallet -= price;
+  db[u].wallet-=price;
   saveDB(db);
 
   alert("Joined ₹"+price+" at "+time);
