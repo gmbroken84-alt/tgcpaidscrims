@@ -1,235 +1,142 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>TGC SCRIMS</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TGC PAID SCRIMS</title>
 
 <style>
 body{
-  margin:0;
-  font-family:Arial;
-  background:#000;
-  color:white;
-  text-align:center;
-}
-h1{color:#00bfff;}
-
-.box{
-  background:#111;
-  margin:15px;
-  padding:20px;
-  border-radius:12px;
-  border:2px solid #00bfff;
+margin:0;
+font-family:Arial;
+background:#000 url('bg.png') no-repeat center;
+background-size:cover;
+color:#fff;
+text-align:center;
 }
 
-button{
-  padding:12px;
-  margin:6px;
-  background:#00bfff;
-  border:none;
-  border-radius:8px;
+h1{
+font-size:32px;
+margin-top:10px;
+}
+
+.tgc{color:white;}
+.scrims{
+background:linear-gradient(red,blue);
+-webkit-background-clip:text;
+color:transparent;
 }
 
 input{
-  padding:12px;
-  margin:10px;
-  width:80%;
-  border-radius:8px;
+width:90%;
+padding:12px;
+margin:10px;
+border-radius:8px;
+border:none;
+font-size:16px;
 }
+
+button{
+padding:12px 25px;
+border:none;
+border-radius:8px;
+background:linear-gradient(red,blue);
+color:white;
+font-size:16px;
+margin:10px;
+}
+
+.card{
+background:#111;
+margin:15px;
+padding:15px;
+border-radius:12px;
+}
+
+.hidden{display:none;}
+
 </style>
 </head>
 
 <body>
 
-<h1>🔥 TGC SCRIMS 🔥</h1>
-<div id="app"></div>
+<h1><span class="tgc">TGC</span> <span class="scrims">PAID SCRIMS</span></h1>
+
+<!-- LOGIN -->
+<div id="login">
+<h2>LOGIN</h2>
+<input id="email" placeholder="Email">
+<input id="pass" type="password" placeholder="Password">
+<button onclick="login()">LOGIN</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash" class="hidden">
+
+<!-- MODES -->
+<div class="card">
+<h2>GAME MODES</h2>
+
+<p><b>CLASH SQUAD</b><br>BODY + HEAD<br>1v1 2v2 3v3 4v4</p>
+
+<p><b>LONE WOLF</b><br>BODY + HEAD<br>1v1 2v2</p>
+
+<p><b>BATTLE ROYAL</b><br>PER KILL</p>
+
+<p><b>BR SCRIMS</b><br>48 SLOT</p>
+
+</div>
+
+<!-- SCRIMS -->
+<div class="card">
+<h2>LOBBY SCRIMS</h2>
+
+<p>₹20 SCRIMS<br>Top1-100 Top2-50 Top3-40</p>
+<button onclick="join()">JOIN</button>
+
+<p>₹25 SCRIMS<br>Top1-100 Top2-50 Top3-50 Top4-40</p>
+<button onclick="join()">JOIN</button>
+
+<p>₹35 SCRIMS<br>Top1-150 Top2-100 Top3-80 Top4-40</p>
+<button onclick="join()">JOIN</button>
+
+<p>₹40 SCRIMS<br>Top1-180 Top2-100 Top3-60 Top4-40</p>
+<button onclick="join()">JOIN</button>
+
+<p>₹45 SCRIMS<br>Top1-200 Top2-100 Top3-50 Top4-40</p>
+<button onclick="join()">JOIN</button>
+
+<p>₹50 SCRIMS<br>Top1-240 Top2-120 Top3-90 Top4-50</p>
+<button onclick="join()">JOIN</button>
+
+<p>₹55 SCRIMS<br>Top1-260 Top2-150 Top3-100 Top4-50</p>
+<button onclick="join()">JOIN</button>
+
+<p>₹75 SCRIMS<br>Top1-300 Top2-200 Top3-100 Top4-100 Top5-50</p>
+<button onclick="join()">JOIN</button>
+
+</div>
+
+<!-- TIME -->
+<div class="card">
+<h2>SCRIMS TIME</h2>
+<p>3:00 Day</p>
+<p>1:00 Day / 1:00 Night</p>
+<p>12:00 Night / 12:00 Day</p>
+<p>6:00 Evening</p>
+<p>9:00 Day / 9:00 Night</p>
+</div>
+
+</div>
 
 <script>
-
-// ===== LOGIN =====
-function loginPage(){
-  app.innerHTML =
-  '<div class="box">'+
-  '<h2>PLAYER LOGIN</h2>'+
-  '<input id="user" placeholder="Username"><br>'+
-  '<button onclick="login()">ENTER</button><br>'+
-  '<button onclick="adminLogin()">👑 ADMIN</button>'+
-  '</div>';
-}
-
 function login(){
-  localStorage.setItem("user",user.value);
-  if(!localStorage.getItem("wallet")) localStorage.setItem("wallet",0);
-  home();
+document.getElementById("login").style.display="none";
+document.getElementById("dash").style.display="block";
 }
 
-// ===== ADMIN LOGIN =====
-function adminLogin(){
-  app.innerHTML =
-  '<div class="box">'+
-  '<h2>ADMIN LOGIN</h2>'+
-  '<input id="auser" placeholder="Admin ID"><br>'+
-  '<input id="apass" placeholder="Password"><br>'+
-  '<button onclick="checkAdmin()">LOGIN</button>'+
-  '<button onclick="loginPage()">BACK</button>'+
-  '</div>';
+function join(){
+alert("Scrim Joined! Check time section.");
 }
-
-function checkAdmin(){
-  if(auser.value=="TGCADMIN" && apass.value=="TEAMEGOISTIC"){
-    adminPanel();
-  } else alert("Wrong Admin");
-}
-
-// ===== ADMIN PANEL =====
-function adminPanel(){
-  app.innerHTML =
-  '<div class="box">'+
-  '<h2>ADMIN PANEL</h2>'+
-  '<input id="mode" placeholder="Mode (PER KILL ₹10)"><br>'+
-  '<input id="room" placeholder="Room ID"><br>'+
-  '<input id="pass" placeholder="Password"><br>'+
-  '<button onclick="releaseRoom()">RELEASE ROOM</button>'+
-  '<button onclick="loginPage()">LOGOUT</button>'+
-  '</div>';
-}
-
-function releaseRoom(){
-  let m=mode.value.toUpperCase().trim();
-  let data={room:room.value,pass:pass.value};
-  localStorage.setItem("room_"+m,JSON.stringify(data));
-  alert("Room Released");
-}
-
-// ===== HOME =====
-function home(){
-  let w = parseInt(localStorage.getItem("wallet")||0);
-
-  app.innerHTML =
-  '<div class="box">'+
-  '<h2>WELCOME '+localStorage.getItem("user")+'</h2>'+
-  '<h3>💰 Wallet: ₹'+w+'</h3>'+
-  '<button onclick="addMoney()">ADD MONEY</button><br>'+
-  '<button onclick="clash()">CLASH SQUAD</button>'+
-  '<button onclick="lone()">LONEWOLF</button>'+
-  '<button onclick="br()">BATTLE ROYAL</button>'+
-  '</div>';
-}
-
-// ===== ADD MONEY =====
-function addMoney(){
-  let amt = prompt("Enter Amount");
-  if(!amt) return;
-
-  let w = parseInt(localStorage.getItem("wallet")||0);
-  w += parseInt(amt);
-  localStorage.setItem("wallet",w);
-
-  alert("Added ₹"+amt);
-  home();
-}
-
-// ===== MODES =====
-function clash(){
-  showMode("CLASH");
-}
-
-function lone(){
-  showMode("LONE");
-}
-
-function showMode(name){
-  app.innerHTML =
-  '<div class="box">'+
-  '<h2>'+name+'</h2>'+
-  '<button onclick="joinMode(\''+name+' 1v1\')">1v1</button>'+
-  '<button onclick="joinMode(\''+name+' 2v2\')">2v2</button>'+
-  '<button onclick="joinMode(\''+name+' 3v3\')">3v3</button>'+
-  '<button onclick="joinMode(\''+name+' 4v4\')">4v4</button>'+
-  '<button onclick="home()">BACK</button>'+
-  '</div>';
-}
-
-// ===== BR =====
-function br(){
-  app.innerHTML =
-  '<div class="box">'+
-  '<h2>BATTLE ROYAL</h2>'+
-  '<button onclick="perKill()">PER KILL</button>'+
-  '<button onclick="scrims()">SCRIMS</button>'+
-  '<button onclick="home()">BACK</button>'+
-  '</div>';
-}
-
-// ===== PER KILL =====
-function perKill(){
-  app.innerHTML =
-  '<div class="box">'+
-  '<h2>PER KILL</h2>'+
-  card(10)+card(20)+card(30)+
-  '<button onclick="br()">BACK</button>'+
-  '</div>';
-}
-
-function card(p){
-  let s=parseInt(localStorage.getItem("slot_"+p)||0);
-  return '<div class="box">'+
-  '<h3>₹'+p+'</h3>'+
-  '<p>'+s+'/48</p>'+
-  '<button onclick="joinPK('+p+')">JOIN</button>'+
-  '</div>';
-}
-
-function joinPK(p){
-  let s=parseInt(localStorage.getItem("slot_"+p)||0);
-  if(s>=48){alert("FULL");return;}
-  s++;
-  localStorage.setItem("slot_"+p,s);
-  joinMode("PER KILL ₹"+p);
-}
-
-// ===== SCRIMS =====
-function scrims(){
-  app.innerHTML =
-  '<div class="box">'+
-  '<h2>SCRIMS</h2>'+
-  scrimBtn(20)+scrimBtn(25)+scrimBtn(35)+scrimBtn(40)+
-  scrimBtn(45)+scrimBtn(50)+scrimBtn(55)+scrimBtn(75)+
-  '<button onclick="br()">BACK</button>'+
-  '</div>';
-}
-
-function scrimBtn(p){
-  return '<button onclick="joinMode(\'SCRIMS ₹'+p+'\')">₹'+p+'</button>';
-}
-
-// ===== JOIN =====
-function joinMode(type){
-
-  let times = [
-    "1:00 PM","1:30 PM","2:00 PM","2:30 PM",
-    "3:00 PM","3:30 PM","4:00 PM","4:30 PM","5:00 PM"
-  ];
-
-  let data = localStorage.getItem("room_"+type.toUpperCase().trim());
-
-  let msg = "WAIT FOR ADMIN";
-
-  if(data){
-    let r = JSON.parse(data);
-    msg = "ROOM: "+r.room+" | PASS: "+r.pass;
-  }
-
-  alert(
-    "JOINED\n\n"+type+
-    "\n\nTIME:\n"+times.join(", ")+
-    "\n\n"+msg
-  );
-}
-
-// START
-loginPage();
-
 </script>
 
 </body>
