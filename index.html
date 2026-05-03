@@ -1,141 +1,116 @@
 <!DOCTYPE html>
 <html>
 <head>
+<title>TGC Paid Scrims</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TGC PAID SCRIMS</title>
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-background:#000 url('bg.png') no-repeat center;
-background-size:cover;
-color:#fff;
-text-align:center;
-}
-
-h1{
-font-size:32px;
-margin-top:10px;
-}
-
-.tgc{color:white;}
-.scrims{
-background:linear-gradient(red,blue);
--webkit-background-clip:text;
-color:transparent;
-}
-
-input{
-width:90%;
-padding:12px;
-margin:10px;
-border-radius:8px;
-border:none;
-font-size:16px;
-}
-
-button{
-padding:12px 25px;
-border:none;
-border-radius:8px;
-background:linear-gradient(red,blue);
-color:white;
-font-size:16px;
-margin:10px;
-}
-
-.card{
-background:#111;
-margin:15px;
-padding:15px;
-border-radius:12px;
-}
-
-.hidden{display:none;}
-
+body { margin:0; font-family:Arial; background:#0d0d0d; color:white; }
+.page { display:none; padding:20px; }
+.active { display:block; }
+button { padding:10px; margin:5px; width:100%; background:red; color:white; border:none; border-radius:8px; }
+input { padding:10px; width:100%; margin:5px 0; border-radius:8px; border:none; }
+h2 { text-align:center; }
 </style>
 </head>
 
 <body>
 
-<h1><span class="tgc">TGC</span> <span class="scrims">PAID SCRIMS</span></h1>
-
 <!-- LOGIN -->
-<div id="login">
-<h2>LOGIN</h2>
-<input id="email" placeholder="Email">
-<input id="pass" type="password" placeholder="Password">
-<button onclick="login()">LOGIN</button>
+<div id="login" class="page active">
+  <h2>TGC PAID SCRIMS</h2>
+  <input id="username" placeholder="Enter Name">
+  <button onclick="login()">Enter</button>
 </div>
 
-<!-- DASHBOARD -->
-<div id="dash" class="hidden">
-
-<!-- MODES -->
-<div class="card">
-<h2>GAME MODES</h2>
-
-<p><b>CLASH SQUAD</b><br>BODY + HEAD<br>1v1 2v2 3v3 4v4</p>
-
-<p><b>LONE WOLF</b><br>BODY + HEAD<br>1v1 2v2</p>
-
-<p><b>BATTLE ROYAL</b><br>PER KILL</p>
-
-<p><b>BR SCRIMS</b><br>48 SLOT</p>
-
+<!-- MODE -->
+<div id="mode" class="page">
+  <h2>Select Mode</h2>
+  <button onclick="selectMode('BR SCRIMS')">BR SCRIMS</button>
+  <button onclick="selectMode('CLASH SQUAD')">CLASH SQUAD</button>
+  <button onclick="selectMode('LONEWOLF')">LONEWOLF</button>
+  <button onclick="selectMode('BR PER KILL')">BR PER KILL</button>
 </div>
 
-<!-- SCRIMS -->
-<div class="card">
-<h2>LOBBY SCRIMS</h2>
-
-<p>₹20 SCRIMS<br>Top1-100 Top2-50 Top3-40</p>
-<button onclick="join()">JOIN</button>
-
-<p>₹25 SCRIMS<br>Top1-100 Top2-50 Top3-50 Top4-40</p>
-<button onclick="join()">JOIN</button>
-
-<p>₹35 SCRIMS<br>Top1-150 Top2-100 Top3-80 Top4-40</p>
-<button onclick="join()">JOIN</button>
-
-<p>₹40 SCRIMS<br>Top1-180 Top2-100 Top3-60 Top4-40</p>
-<button onclick="join()">JOIN</button>
-
-<p>₹45 SCRIMS<br>Top1-200 Top2-100 Top3-50 Top4-40</p>
-<button onclick="join()">JOIN</button>
-
-<p>₹50 SCRIMS<br>Top1-240 Top2-120 Top3-90 Top4-50</p>
-<button onclick="join()">JOIN</button>
-
-<p>₹55 SCRIMS<br>Top1-260 Top2-150 Top3-100 Top4-50</p>
-<button onclick="join()">JOIN</button>
-
-<p>₹75 SCRIMS<br>Top1-300 Top2-200 Top3-100 Top4-100 Top5-50</p>
-<button onclick="join()">JOIN</button>
-
+<!-- ENTRY -->
+<div id="entry" class="page">
+  <h2>Select Entry</h2>
+  <button onclick="selectEntry(20)">₹20</button>
+  <button onclick="selectEntry(30)">₹30</button>
+  <button onclick="selectEntry(55)">₹55</button>
+  <button onclick="selectEntry(75)">₹75</button>
 </div>
 
 <!-- TIME -->
-<div class="card">
-<h2>SCRIMS TIME</h2>
-<p>3:00 Day</p>
-<p>1:00 Day / 1:00 Night</p>
-<p>12:00 Night / 12:00 Day</p>
-<p>6:00 Evening</p>
-<p>9:00 Day / 9:00 Night</p>
+<div id="time" class="page">
+  <h2>Select Time</h2>
+  <button onclick="selectTime('3:00 Day')">3:00 Day</button>
+  <button onclick="selectTime('9:00 Night')">9:00 Night</button>
+  <button onclick="selectTime('12:00 Night')">12:00 Night</button>
 </div>
 
+<!-- NAME -->
+<div id="name" class="page">
+  <h2>Enter Details</h2>
+  <input id="playerName" placeholder="Team / In-Game Name">
+  <button onclick="saveData()">Join</button>
+</div>
+
+<!-- ROOM -->
+<div id="room" class="page">
+  <h2>WAIT FOR ROOM ID PASSWORD</h2>
+  <div id="roomData"></div>
 </div>
 
 <script>
-function login(){
-document.getElementById("login").style.display="none";
-document.getElementById("dash").style.display="block";
+let data = {};
+
+function show(page){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(page).classList.add("active");
 }
 
-function join(){
-alert("Scrim Joined! Check time section.");
+function login(){
+  const name = document.getElementById("username").value;
+  if(!name) return alert("Enter name");
+  data.user = name;
+  show("mode");
+}
+
+function selectMode(mode){
+  data.mode = mode;
+  show("entry");
+}
+
+function selectEntry(amount){
+  data.amount = amount;
+  show("time");
+}
+
+function selectTime(time){
+  data.time = time;
+  show("name");
+}
+
+function saveData(){
+  data.name = document.getElementById("playerName").value;
+
+  localStorage.setItem("playerData", JSON.stringify(data));
+
+  show("room");
+  loadRoom();
+}
+
+function loadRoom(){
+  const room = localStorage.getItem("roomId");
+  const pass = localStorage.getItem("roomPass");
+
+  if(room && pass){
+    document.getElementById("roomData").innerHTML =
+      "<h3>ROOM ID: "+room+"</h3><h3>PASSWORD: "+pass+"</h3>";
+  } else {
+    document.getElementById("roomData").innerHTML = "<p>Waiting...</p>";
+  }
 }
 </script>
 
