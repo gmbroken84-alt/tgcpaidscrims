@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>TGC Paid Scrims</title>
+<title>TGC PAID SCRIMS</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body { margin:0; font-family:Arial; background:#0d0d0d; color:white; }
-.page { display:none; padding:20px; }
-.active { display:block; }
-button { padding:10px; margin:5px; width:100%; background:red; color:white; border:none; border-radius:8px; }
-input { padding:10px; width:100%; margin:5px 0; border-radius:8px; border:none; }
-h2 { text-align:center; }
+body{margin:0;font-family:Arial;background:#0d0d0d;color:white;}
+.page{display:none;padding:20px;}
+.active{display:block;}
+button{padding:12px;margin:5px;width:100%;background:red;color:white;border:none;border-radius:10px;font-size:15px;}
+input,select{padding:10px;width:100%;margin:5px 0;border-radius:8px;border:none;}
+h2{text-align:center;}
+.card{background:#1a1a1a;padding:15px;margin:10px 0;border-radius:10px;}
 </style>
 </head>
 
@@ -19,41 +20,46 @@ h2 { text-align:center; }
 <!-- LOGIN -->
 <div id="login" class="page active">
   <h2>TGC PAID SCRIMS</h2>
-  <input id="username" placeholder="Enter Name">
-  <button onclick="login()">Enter</button>
+  <input id="email" placeholder="Email">
+  <input id="pass" placeholder="Password">
+  <button onclick="login()">LOGIN</button>
+</div>
+
+<!-- HOME -->
+<div id="home" class="page">
+  <h2>BIG UI PANEL</h2>
+  <button onclick="show('mode')">SELECT MODE</button>
 </div>
 
 <!-- MODE -->
 <div id="mode" class="page">
-  <h2>Select Mode</h2>
-  <button onclick="selectMode('BR SCRIMS')">BR SCRIMS</button>
-  <button onclick="selectMode('CLASH SQUAD')">CLASH SQUAD</button>
-  <button onclick="selectMode('LONEWOLF')">LONEWOLF</button>
-  <button onclick="selectMode('BR PER KILL')">BR PER KILL</button>
+  <h2>SELECT MODE</h2>
+  <button onclick="modeSelect('BR SCRIMS')">BR SCRIMS</button>
+  <button onclick="modeSelect('CLASH SQUAD')">CLASH SQUAD</button>
+  <button onclick="modeSelect('LONEWOLF')">LONEWOLF</button>
+  <button onclick="modeSelect('BR PER KILL')">BR PER KILL</button>
 </div>
 
 <!-- ENTRY -->
 <div id="entry" class="page">
-  <h2>Select Entry</h2>
-  <button onclick="selectEntry(20)">₹20</button>
-  <button onclick="selectEntry(30)">₹30</button>
-  <button onclick="selectEntry(55)">₹55</button>
-  <button onclick="selectEntry(75)">₹75</button>
+  <h2>SELECT ENTRY</h2>
+  <div id="entryList"></div>
 </div>
 
 <!-- TIME -->
 <div id="time" class="page">
-  <h2>Select Time</h2>
-  <button onclick="selectTime('3:00 Day')">3:00 Day</button>
-  <button onclick="selectTime('9:00 Night')">9:00 Night</button>
-  <button onclick="selectTime('12:00 Night')">12:00 Night</button>
+  <h2>SELECT TIME</h2>
+  <button onclick="setTime('3:00 DAY')">3:00 DAY</button>
+  <button onclick="setTime('1:00 DAY')">1:00 DAY</button>
+  <button onclick="setTime('1:00 NIGHT')">1:00 NIGHT</button>
+  <button onclick="setTime('9:00 NIGHT')">9:00 NIGHT</button>
 </div>
 
-<!-- NAME -->
-<div id="name" class="page">
-  <h2>Enter Details</h2>
-  <input id="playerName" placeholder="Team / In-Game Name">
-  <button onclick="saveData()">Join</button>
+<!-- DETAILS -->
+<div id="details" class="page">
+  <h2>ENTER DETAILS</h2>
+  <input id="name" placeholder="Team / IGN">
+  <button onclick="join()">JOIN</button>
 </div>
 
 <!-- ROOM -->
@@ -62,55 +68,118 @@ h2 { text-align:center; }
   <div id="roomData"></div>
 </div>
 
-<script>
-let data = {};
+<!-- ADMIN -->
+<div id="admin" class="page">
+  <h2>ADMIN PANEL</h2>
 
-function show(page){
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.getElementById(page).classList.add("active");
+  <div class="card">
+    <h3>Set Room</h3>
+    <input id="roomId" placeholder="Room ID">
+    <input id="roomPass" placeholder="Password">
+    <button onclick="setRoom()">SET ROOM</button>
+  </div>
+
+  <div class="card">
+    <h3>Joined Players</h3>
+    <div id="players"></div>
+  </div>
+
+</div>
+
+<script>
+let user = {};
+let isAdmin = false;
+
+function show(p){
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+ document.getElementById(p).classList.add('active');
 }
 
 function login(){
-  const name = document.getElementById("username").value;
-  if(!name) return alert("Enter name");
-  data.user = name;
-  show("mode");
+ let email = document.getElementById('email').value;
+ let pass = document.getElementById('pass').value;
+
+ if(email==="admin@gmail.com" && pass==="admin"){
+   isAdmin = true;
+   show('admin');
+   loadPlayers();
+ } else {
+   show('home');
+ }
 }
 
-function selectMode(mode){
-  data.mode = mode;
-  show("entry");
+function modeSelect(m){
+ user.mode = m;
+ loadEntry(m);
+ show('entry');
 }
 
-function selectEntry(amount){
-  data.amount = amount;
-  show("time");
+function loadEntry(mode){
+ let box = document.getElementById('entryList');
+ box.innerHTML="";
+
+ if(mode==="BR SCRIMS"){
+   let list=[20,25,35,40,45,50,55,75];
+   list.forEach(e=>{
+     box.innerHTML+=`<button onclick="setEntry(${e})">₹${e}</button>`;
+   });
+ } else {
+   let list=[30,40,50,60,70];
+   list.forEach(e=>{
+     box.innerHTML+=`<button onclick="setEntry(${e})">₹${e}</button>`;
+   });
+ }
 }
 
-function selectTime(time){
-  data.time = time;
-  show("name");
+function setEntry(e){
+ user.entry=e;
+ show('time');
 }
 
-function saveData(){
-  data.name = document.getElementById("playerName").value;
+function setTime(t){
+ user.time=t;
+ show('details');
+}
 
-  localStorage.setItem("playerData", JSON.stringify(data));
+function join(){
+ user.name=document.getElementById('name').value;
 
-  show("room");
-  loadRoom();
+ let arr = JSON.parse(localStorage.getItem("players")||"[]");
+ arr.push(user);
+ localStorage.setItem("players",JSON.stringify(arr));
+
+ show('room');
+ loadRoom();
+}
+
+function setRoom(){
+ localStorage.setItem("roomId",document.getElementById("roomId").value);
+ localStorage.setItem("roomPass",document.getElementById("roomPass").value);
+ alert("Room Updated");
 }
 
 function loadRoom(){
-  const room = localStorage.getItem("roomId");
-  const pass = localStorage.getItem("roomPass");
+ let r=localStorage.getItem("roomId");
+ let p=localStorage.getItem("roomPass");
 
-  if(room && pass){
-    document.getElementById("roomData").innerHTML =
-      "<h3>ROOM ID: "+room+"</h3><h3>PASSWORD: "+pass+"</h3>";
-  } else {
-    document.getElementById("roomData").innerHTML = "<p>Waiting...</p>";
-  }
+ if(r){
+   document.getElementById("roomData").innerHTML=
+   "<h3>ROOM ID: "+r+"</h3><h3>PASS: "+p+"</h3>";
+ } else {
+   document.getElementById("roomData").innerHTML="WAITING...";
+ }
+}
+
+function loadPlayers(){
+ let arr = JSON.parse(localStorage.getItem("players")||"[]");
+ let box=document.getElementById("players");
+ box.innerHTML="";
+ arr.forEach(p=>{
+   box.innerHTML+=`
+   <div class="card">
+   ${p.name} | ${p.mode} | ₹${p.entry} | ${p.time}
+   </div>`;
+ });
 }
 </script>
 
